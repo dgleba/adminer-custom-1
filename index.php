@@ -13,7 +13,7 @@ function adminer_object()
     // Specify enabled plugins here.
     $plugins = array(
         new AdminerDatabaseHide(array("mysql", "information_schema", "performance_schema")),
-        new AdminerLoginServers(array(filter_input(INPUT_SERVER, 'SERVER_NAME'))),
+        // dgleba - can't get localhost in server list in c9.io. new AdminerLoginServers(array(filter_input(INPUT_SERVER, 'SERVER_NAME'))),
         new AdminerSimpleMenu(),
         new AdminerCollations(array("utf8mb4_general_ci", "ascii_general_ci")),
         new AdminerJsonPreview(),
