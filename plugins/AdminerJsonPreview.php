@@ -3,8 +3,10 @@
 /**
  * Displays JSON preview as a table.
  *
+ * @link https://github.com/pematon/adminer-plugins
+ *
  * @author Peter Knut
- * @copyright 2014-2017 Pematon, s.r.o. (http://www.pematon.com/)
+ * @copyright 2014-2018 Pematon, s.r.o. (http://www.pematon.com/)
  */
 class AdminerJsonPreview
 {
@@ -46,6 +48,7 @@ class AdminerJsonPreview
                 border-spacing: 0;
                 margin: 4px 0;
                 border: 1px solid #999;
+                font-size: 110%;
             }
 
             .json tr {
@@ -90,7 +93,7 @@ class AdminerJsonPreview
                 display: inline-block;
                 padding: 0;
                 overflow: hidden;
-                background-image: url("index.php?file=down.gif");
+                background-image: url("<?php echo ME; ?>file=down.gif");
                 background-position: center center;
                 background-repeat: no-repeat;
                 text-indent: -50px;
@@ -110,7 +113,7 @@ class AdminerJsonPreview
             }
 
             a.json-icon.json-up {
-                background-image: url("index.php?file=up.gif");
+                background-image: url("<?php echo ME; ?>file=up.gif");
             }
 
             /* No javascript support */
@@ -123,20 +126,39 @@ class AdminerJsonPreview
             }
         </style>
 
-        <script>
-            function toggleJson(button, counter) {
-                var obj = document.getElementById("json-code-" + counter);
-                if (!obj)
-                    return;
+        <script <?php echo nonce(); ?>>
+            (function(document) {
+                "use strict";
 
-                if (obj.style.display === "none") {
-                    button.className += " json-up";
-                    obj.style.display = "";
-                } else {
-                    button.className = button.className.replace(" json-up", "");
-                    obj.style.display = "none";
+                document.addEventListener("DOMContentLoaded", init, false);
+
+                function init() {
+                    var links = document.querySelectorAll('a.json-icon');
+
+                    for (var i = 0; i < links.length; i++) {
+                        links[i].addEventListener("click", function(event) {
+                            event.preventDefault();
+                            toggleJson(this);
+                        }, false);
+                    }
                 }
-            }
+
+                function toggleJson(button) {
+                    var index = button.dataset.index;
+
+                    var obj = document.getElementById("json-code-" + index);
+                    if (!obj)
+                        return;
+
+                    if (obj.style.display === "none") {
+                        button.className += " json-up";
+                        obj.style.display = "";
+                    } else {
+                        button.className = button.className.replace(" json-up", "");
+                        obj.style.display = "none";
+                    }
+                }
+            })(document);
         </script>
 
         <?php
@@ -150,8 +172,8 @@ class AdminerJsonPreview
             return;
         }
 
-        if (is_string($original) && substr($original, 0, 1) == '{' && ($json = json_decode($original, true))) {
-            $val = "<a class='icon json-icon' href='#' onclick='toggleJson(this, $counter);return false;' title='JSON'>JSON</a> " . $val;
+        if (is_string($original) && in_array(substr($original, 0, 1), ['{', '[']) && ($json = json_decode($original, true))) {
+            $val = "<a class='icon json-icon' href='#' title='JSON' data-index='$counter'>JSON</a> " . $val;
             $val .= $this->convertJson($json, 1, $counter++);
         }
     }
@@ -164,8 +186,8 @@ class AdminerJsonPreview
             return;
         }
 
-        if (is_string($value) && substr($value, 0, 1) == '{' && ($json = json_decode($value, true))) {
-            echo "<a class='icon json-icon json-link' href='#' onclick='toggleJson(this, $counter);return false;' title='JSON'><span>JSON</span></a><br/>";
+        if (is_string($value) && in_array(substr($value, 0, 1), ['{', '[']) && ($json = json_decode($value, true))) {
+            echo "<a class='icon json-icon json-link' href='#' title='JSON' data-index='$counter'><span>JSON</span></a><br/>";
             echo $this->convertJson($json, 1, $counter);
         }
     }
@@ -190,12 +212,14 @@ class AdminerJsonPreview
                 $value .= "<code class='jush-js'>" . h(preg_replace('/([,:])([^\s])/', '$1 $2', json_encode($val))) . "</code>";
             } elseif (is_string($val)) {
                 // Shorten string to max. length.
-                if (mb_strlen($val, "UTF-8") > self::MAX_TEXT_LENGTH)
+                if (mb_strlen($val, "UTF-8") > self::MAX_TEXT_LENGTH) {
                     $val = mb_substr($val, 0, self::MAX_TEXT_LENGTH - 3, "UTF-8") . "...";
+                }
 
                 // Add extra new line to make it visible in HTML output.
-                if (preg_match("@\n$@", $val))
+                if (preg_match("@\n$@", $val)) {
                     $val .= "\n";
+                }
 
                 $value .= "<code>" . nl2br(h($val)) . "</code>";
             } elseif (is_bool($val)) {

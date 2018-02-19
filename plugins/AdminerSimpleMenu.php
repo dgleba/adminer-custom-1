@@ -6,8 +6,10 @@
  * Get rid of schizophrenic decisions between selecting data and showing table structure.
  * Optimize your workflow!
  *
+ * @link https://github.com/pematon/adminer-plugins
+ *
  * @author Peter Knut
- * @copyright 2014-2017 Pematon, s.r.o. (http://www.pematon.com/)
+ * @copyright 2014-2018 Pematon, s.r.o. (http://www.pematon.com/)
  */
 class AdminerSimpleMenu
 {
@@ -57,12 +59,12 @@ class AdminerSimpleMenu
         if (defined("PMTN_ADMINER_THEME")) {
             echo "<ul id='tables' class='simple'>\n";
         } else {
-            echo "<ul id='tables' onmouseover='menuOver(this, event);' onmouseout='menuOut(this);' class='simple'>\n";
+            echo "<ul id='tables' class='simple'>" . script("mixin(qs('#tables'), {onmouseover: menuOver, onmouseout: menuOut});");
         }
 
         foreach ($tables as $table => $status) {
             $name = Adminer::tableName($status);
-            $active = in_array($table, array($_GET["select"], $_GET["edit"], $_GET["table"], $_GET["create"], $_GET["indexes"], $_GET["foreign"], $_GET["trigger"]));
+            $active = in_array($table, [$_GET["select"], $_GET["edit"], $_GET["table"], $_GET["create"], $_GET["indexes"], $_GET["foreign"], $_GET["trigger"]]);
 
             if ($this->preferSelect) {
                 $action = "select";
@@ -102,7 +104,7 @@ class AdminerSimpleMenu
 
         echo '<p class="links">';
 
-        $links = array();
+        $links = [];
 
         if ($this->preferSelect) {
             $links["select"] = lang('Select data');

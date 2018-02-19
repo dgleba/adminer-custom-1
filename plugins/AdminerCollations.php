@@ -3,8 +3,10 @@
 /**
  * Custom character sets in collation select boxes.
  *
+ * @link https://github.com/pematon/adminer-plugins
+ *
  * @author Peter Knut
- * @copyright 2015-2017 Pematon, s.r.o. (http://www.pematon.com/)
+ * @copyright 2015-2018 Pematon, s.r.o. (http://www.pematon.com/)
  */
 class AdminerCollations
 {
@@ -14,14 +16,13 @@ class AdminerCollations
     /**
      * @param array $characterSets Array of allowed character sets.
      */
-    function __construct(array $characterSets = array('utf8mb4_general_ci'))
+    public function __construct(array $characterSets = ["utf8mb4_general_ci", "ascii_general_ci"])
     {
         $this->characterSets = $characterSets;
     }
 
     /**
      * Prints HTML code inside <head>.
-     * @return null
      */
     public function head()
     {
@@ -31,11 +32,9 @@ class AdminerCollations
 
         ?>
 
-        <script>
-            (function(window) {
+        <script <?php echo nonce(); ?>>
+            (function(document) {
                 "use strict";
-
-                const selectNamePattern = /^([cC]ollation|fields\[[0-9]+]\[collation])$/;
 
                 const characterSets = [
                     <?php
@@ -47,17 +46,13 @@ class AdminerCollations
                     ?>
                 ];
 
-                window.addEventListener("load", function () {
-                    replaceCollations();
-                }, false);
+                document.addEventListener("DOMContentLoaded", init, false);
 
-                function replaceCollations() {
-                    var selects = document.getElementsByTagName("select");
+                function init() {
+                    var selects = document.querySelectorAll("select[name='Collation'], select[name*='collation']");
 
                     for (var i = 0; i < selects.length; i++) {
-                        if (selectNamePattern.test(selects[i].name)) {
-                            replaceOptions(selects[i]);
-                        }
+                        replaceOptions(selects[i]);
                     }
                 }
 
@@ -67,7 +62,7 @@ class AdminerCollations
                     var hasSelected = false;
 
                     for (var i = 0; i < characterSets.length; i++) {
-                        if (characterSets[i] == selectedSet) {
+                        if (characterSets[i] === selectedSet) {
                             hasSelected = true;
                             html += '<option selected="selected">' + characterSets[i] + '</option>';
                         } else {
@@ -93,7 +88,7 @@ class AdminerCollations
 
                     return "";
                 }
-            })(window);
+            })(document);
 
         </script>
 
